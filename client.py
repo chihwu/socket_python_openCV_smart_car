@@ -3,16 +3,17 @@ import socket
 import struct
 import time
 import picamera
+import json
 
 client_socket = socket.socket()
 
-client_socket.connect(('10.100.200.2', 8080))  # ADD IP HERE
+client_socket.connect(('18.190.147.87', 8080))  # ADD IP HERE
 
 BUFFER_SIZE = 1024
 
 # Make a file-like object out of the connection
 connection = client_socket.makefile('wb')
-print("test")
+print("start sending...")
 try:
     camera = picamera.PiCamera()
     #camera.vflip = True
@@ -43,15 +44,21 @@ try:
         stream.seek(0)
         stream.truncate()
         
-        data = client_socket.recv(BUFFER_SIZE)
-        print("Received data", data)
+
+        response = client_socket.recv(BUFFER_SIZE)
+        response = response.decode("utf-8")
+        print("Received data", response)
+        if response != "none" and not response:
+            data = json.loads(response)
+            print(data['class'])
+            print(data['x'])
+            print(data['y'])
+        
     # Write a length of zero to the stream to signal we're done
     connection.write(struct.pack('<L', 0))
     
-    
-    print("Hey move")
-    
 finally:
+    print("Sending Ended...")
     connection.close()
     client_socket.close()
 

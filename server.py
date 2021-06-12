@@ -289,7 +289,7 @@ try:
             y_center = (y_center / h) * 200 - 100
             print(labels[int(class_numbers[0])], ' => ', x_center, ' , ', y_center)
             
-            response = '{"class": ' + str(labels[int(class_numbers[0])]) + ', "x": ' + str(x_center) + ', "y": ' + str(y_center) + '}'
+            response = '{"class": "' + str(labels[int(class_numbers[0])]) + '", "x": ' + str(x_center) + ', "y": ' + str(y_center) + '}'
             response = response.encode()
             conn.send(response)
 
