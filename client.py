@@ -1,4 +1,3 @@
-# The code should be uploaded onto Raspberry Pi
 import io
 import socket
 import struct
@@ -7,7 +6,7 @@ import picamera
 
 client_socket = socket.socket()
 
-client_socket.connect(('10.100.200.5', 8080))  # ADD IP HERE
+client_socket.connect(('10.100.200.2', 8080))  # ADD IP HERE
 
 BUFFER_SIZE = 1024
 
@@ -16,8 +15,8 @@ connection = client_socket.makefile('wb')
 print("test")
 try:
     camera = picamera.PiCamera()
-    camera.vflip = True
-    camera.resolution = (500, 480)
+    #camera.vflip = True
+    camera.resolution = (1024, 768)
     # Start a preview and let the camera warm up for 2 seconds
     camera.start_preview()
     time.sleep(2)
@@ -38,8 +37,8 @@ try:
         stream.seek(0)
         connection.write(stream.read())
         # If we've been capturing for more than 30 seconds, quit
-        if time.time() - start > 60:
-            break
+        #if time.time() - start > 60:
+            #break
         # Reset the stream for the next capture
         stream.seek(0)
         stream.truncate()

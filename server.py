@@ -66,7 +66,7 @@ try:
         # E.G.:
         # blob = cv2.dnn.blobFromImage(image, scalefactor=1.0, size, mean, swapRB=True)
         blob = cv2.dnn.blobFromImage(image, 1 / 255.0, (416, 416),
-                                    swapRB=True, crop=False)
+                                    swapRB=False, crop=False)
 
         # # Check point
         # print('Image shape:', image_BGR.shape)  # (511, 767, 3)
@@ -214,6 +214,9 @@ try:
                 # Getting value of probability for defined class
                 confidence_current = scores[class_current]
 
+                if labels[class_current] != "bottle":
+                    continue
+
                 # # Check point
                 # # Every 'detected_objects' numpy array has first 4 numbers with
                 # # bounding box coordinates and rest 80 with probabilities for every class
@@ -274,55 +277,24 @@ try:
         Drawing bounding boxes and labels
         """
 
-        # Defining counter for detected objects
-        counter = 1
-
         # Checking if there is at least one detected object after non-maximum suppression
         if len(results) > 0:
-            # Going through indexes of results
-            for i in results.flatten():
-                # Showing labels of the detected objects
-                print('Object {0}: {1}'.format(counter, labels[int(class_numbers[i])]))
+            x_min, y_min = bounding_boxes[0][0], bounding_boxes[0][1]
+            box_width, box_height = bounding_boxes[0][2], bounding_boxes[0][3]
 
-                # Incrementing counter
-                counter += 1
+            x_center = x_min + box_width / 2
+            y_center = y_min + box_height / 2
 
-                # Getting current bounding box coordinates,
-                # its width and height
-                x_min, y_min = bounding_boxes[i][0], bounding_boxes[i][1]
-                box_width, box_height = bounding_boxes[i][2], bounding_boxes[i][3]
+            x_center = (x_center / w) * 200 - 100
+            y_center = (y_center / h) * 200 - 100
+            print(labels[int(class_numbers[0])], ' => ', x_center, ' , ', y_center)
+            
+            response = '{"class": ' + str(labels[int(class_numbers[0])]) + ', "x": ' + str(x_center) + ', "y": ' + str(y_center) + '}'
+            response = response.encode()
+            conn.send(response)
 
-                # Preparing colour for current bounding box
-                # and converting from numpy array to list
-                colour_box_current = colours[class_numbers[i]].tolist()
-
-                # # # Check point
-                # print(type(colour_box_current))  # <class 'list'>
-                # print(colour_box_current)  # [172 , 10, 127]
-
-                # # Drawing bounding box on the original image
-                # cv2.rectangle(image_BGR, (x_min, y_min),
-                #               (x_min + box_width, y_min + box_height),
-                #               colour_box_current, 2)
-
-                # Preparing text with label and confidence for current bounding box
-                text_box_current = '{}: {:.4f}'.format(labels[int(class_numbers[i])],
-                                                        confidences[i])
-                print(labels[int(class_numbers[i])])
-                # # Putting text with label and confidence on the original image
-                # cv2.putText(image_BGR, text_box_current, (x_min, y_min - 5),
-                #             cv2.FONT_HERSHEY_COMPLEX, 0.7, colour_box_current, 2)
-
-
-        # Comparing how many objects where before non-maximum suppression
-        # and left after
-        print()
-        print('Total objects been detected:', len(bounding_boxes))
-        print('Number of objects left after non-maximum suppression:', counter - 1)
-
-        response = text_box_current.encode()
+        response = "Done with this frame".encode()
         conn.send(response)
-
 finally:
     connection.close()
     server_socket.close()
